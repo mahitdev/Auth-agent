@@ -1,4 +1,4 @@
-import { StateGraph, END } from '@langchain/langgraph';
+import { StateGraph, END, START } from '@langchain/langgraph';
 import { getGitHubToken } from '../token-vault';
 import { scanBounties, claimIssue, writeFix, submitPR } from './tools';
 import { AgentState } from './state';
@@ -58,7 +58,7 @@ const shouldRequestApproval = (state: AgentState) => {
   return hasHighValue ? 'request_approval' : 'claim';
 };
 
-graph.addConditionalEdges('scan', shouldRequestApproval);
+graph.addConditionalEdges(START, shouldRequestApproval);
 graph.addEdge('request_approval', END);
 graph.addEdge('claim', 'write');
 graph.addEdge('write', 'submit');
