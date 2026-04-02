@@ -87,7 +87,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold text-white mb-3">Step-Up Approval</h3>
             <p className="text-slate-400 leading-relaxed">
-              High-value bounties (> $500) trigger a Telegram notification for human-in-the-loop review before the PR is submitted.
+              High-value bounties (&gt; $500) trigger a Telegram notification for human-in-the-loop review before the PR is submitted.
             </p>
           </div>
         </div>

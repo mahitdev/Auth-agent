@@ -2,7 +2,7 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useState, useEffect } from 'react';
-import { Play, Settings2, Github, AlertCircle, CheckCircle2, RefreshCw, LogOut } from 'lucide-react';
+import { Play, Settings2, Github, AlertCircle, CheckCircle2, RefreshCw, LogOut, Terminal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {

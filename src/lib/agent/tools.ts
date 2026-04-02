@@ -1,6 +1,6 @@
 import { Octokit } from 'octokit';
 import { GitHubIssue } from './state';
-import { ChatOpenAI } from '@langchain/openai';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PromptTemplate } from '@langchain/core/prompts';
 
 /**
@@ -10,12 +10,24 @@ import { PromptTemplate } from '@langchain/core/prompts';
 export async function scanBounties(token: string, threshold: number): Promise<GitHubIssue[]> {
   const octokit = new Octokit({ auth: token });
   
-  // In a real scenario, this would search globally. 
-  // For demo, we'll mock returning a few high/low value issues.
-  return [
-    { number: 1234, title: "Fix login bug in production", bounty: 75, repo: "owner/repo1" },
-    { number: 1235, title: "Migrate database to PostgreSQL", bounty: 600, repo: "owner/repo2" }
-  ].filter(issue => issue.bounty >= threshold);
+  try {
+    const { data } = await octokit.rest.search.issuesAndPullRequests({
+      q: 'is:issue is:open label:bounty',
+      per_page: 5,
+      sort: 'updated',
+      order: 'desc'
+    });
+    
+    return data.items.map(item => ({
+      number: item.number,
+      title: item.title,
+      bounty: threshold + Math.floor(Math.random() * 500), // Simulating bounty amounts for demo purposes
+      repo: item.repository_url.replace('https://api.github.com/repos/', '')
+    })).filter(issue => issue.bounty >= threshold);
+  } catch (error) {
+    console.error("Failed to scan bounties", error);
+    return [];
+  }
 }
 
 /**
@@ -41,13 +53,13 @@ export async function claimIssue(token: string, repo: string, issueNumber: numbe
 
 /**
  * tool: writeFix
- * Generates the fix using an LLM.
+ * Generates the fix using Gemini LLM.
  */
 export async function writeFix(title: string, repo: string): Promise<string> {
-  const llm = new ChatOpenAI({
-    modelName: "gpt-4o",
+  const llm = new ChatGoogleGenerativeAI({
+    model: "gemini-2.5-pro",
     temperature: 0,
-    openAIApiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY
   });
 
   const prompt = PromptTemplate.fromTemplate(`
@@ -61,7 +73,7 @@ export async function writeFix(title: string, repo: string): Promise<string> {
   const chain = prompt.pipe(llm);
   const result = await chain.invoke({ repo, title });
   
-  return result.text || result.content.toString();
+  return result.text ? result.text.toString() : result.content.toString();
 }
 
 /**
@@ -69,12 +81,10 @@ export async function writeFix(title: string, repo: string): Promise<string> {
  * Creates a branch, commits the fix, and opens a Pull Request.
  */
 export async function submitPR(token: string, repo: string, issueNumber: number, fix: string): Promise<string> {
-  const octokit = new Octokit({ auth: token });
-  const [owner, name] = repo.split('/');
-  
   // In a real scenario this requires fetching the default branch, 
   // creating a tree, creating a commit, updating ref, and opening a PR.
-  // For demo, we just return a mocked URL.
+  // Note: True autonomous PR submission with arbitrary diffs requires complex tree manipulation 
+  // which is mocked here for the flow demonstration.
   
   console.log(`Submitting PR for issue ${issueNumber} with fix:`, fix.slice(0, 30) + '...');
   
