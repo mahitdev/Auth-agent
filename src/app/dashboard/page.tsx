@@ -2,7 +2,7 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useState, useEffect } from 'react';
-import { Play, Settings2, Github, AlertCircle, CheckCircle2, RefreshCw, LogOut, Terminal } from 'lucide-react';
+import { Play, Settings2, Activity, AlertCircle, CheckCircle2, RefreshCw, LogOut, Terminal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
@@ -69,7 +69,7 @@ export default function Dashboard() {
       <nav className="border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-            <Github className="w-5 h-5 text-indigo-400" />
+            <Activity className="w-5 h-5 text-indigo-400" />
           </div>
           <span className="font-bold text-lg tracking-tight text-white">BountyHunter</span>
         </div>

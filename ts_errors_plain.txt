@@ -1,0 +1,1 @@
+﻿src/app/dashboard/page.tsx(5,27): error TS2305: Module '"lucide-react"' has no exported member 'Github'.

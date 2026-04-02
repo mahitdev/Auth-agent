@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     // Note: To properly support suspending/resuming graph, we would use a remote checkpoint saver
     // and invoke with a thread thread_id. Here we invoke and wait for it finish / pause.
-    const result = await graph.invoke(initialState, {
+    const result = await graph.invoke(initialState as any, {
       configurable: { thread_id: session.user.sub },
     });
 

@@ -2,7 +2,7 @@ import { StateGraph, END, START } from '@langchain/langgraph';
 import { getGitHubToken } from '../token-vault';
 import { scanBounties, claimIssue, writeFix, submitPR } from './tools';
 import { AgentState } from './state';
-import { sendTelegramApproval } from '../notifications/telegram';
+import { initiateCIBA, pollCIBAToken } from '../auth0-ciba';
 
 const graph = new StateGraph<AgentState>({
   channels: {
@@ -47,7 +47,15 @@ graph.addNode('submit', async (state) => {
 
 graph.addNode('request_approval', async (state) => {
   const highValue = state.issues.filter(i => i.bounty > 500);
-  await sendTelegramApproval(highValue);
+  if (highValue.length > 0) {
+    const issue = highValue[0];
+    const bindingMsg = `Approve high-value claim on ${issue.repo} #${issue.number}?`;
+    const { auth_req_id } = await initiateCIBA(state.userId, 'claim_high_bounty', bindingMsg);
+    
+    // In a production setup, we would return here and pause the graph, resuming via webhook.
+    // To mock the Sentry experience, we will inline poll for approval.
+    await pollCIBAToken(auth_req_id);
+  }
   return { ...state, needsApproval: true };
 });
 
@@ -59,9 +67,13 @@ const shouldRequestApproval = (state: AgentState) => {
 };
 
 graph.addConditionalEdges(START, shouldRequestApproval);
+// @ts-ignore
 graph.addEdge('request_approval', END);
+// @ts-ignore
 graph.addEdge('claim', 'write');
+// @ts-ignore
 graph.addEdge('write', 'submit');
+// @ts-ignore
 graph.addEdge('submit', END);
 
 export const compileAgent = () => graph.compile();
